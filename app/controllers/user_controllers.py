@@ -30,6 +30,20 @@ class User_controller():
         newuser = user.get_dictionary()
         return newuser
 
+    def check_repitition(self, username, email, password):
+
+        """This method checks through the list for values to avoid a user 
+            from regestering twice
+        """
+        if self.check_email_exists(email):
+            return "Email already exists, choose another one"
+        elif self.check_username_exists(username):
+            return "Username already exists, choose another one"
+        elif self.check_password_exists(password):
+            return "password already exists, choose another one"
+        elif len(password) < 4:
+            return "password strength is too weak"
+
 
     def check_username_exists(self, username):
         """This method checks through the list for values to avoid a user 
@@ -51,7 +65,7 @@ class User_controller():
         if user_details:
             return user_details
 
-    def check_email_exists(self, email):
+    def check_password_exists(self, password):
         """This method checks through the list for values to avoid a user 
             from regestering twice
         """
