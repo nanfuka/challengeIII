@@ -2,6 +2,12 @@ from flask import Flask, jsonify, request, json
 import re
 from ..db import DatabaseConnection
 from app.model.users import User 
+import jwt
+from functools import wraps
+
+
+userkey = 'amauser'
+adminkey = 'hodulop'
 
 db = DatabaseConnection()
 
@@ -78,6 +84,46 @@ class User_controller():
     def drop_table(self, table_name):
         drop = f"DROP TABLE {table_name};"
         db.cursor.execute(drop)
+
+    def customer_token(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = request.headers.get('Authorization')
+            if not token:
+                return jsonify({'message': 'Token is missing'}), 404
+            try:
+                jwt.decode(token, userkey)
+            except:
+                return jsonify({'message': 'Token is invalid'}), 404
+            return f(*args, **kwargs)
+        return decorated
+
+    def admin_token(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = request.headers.get('Authorization')
+            if not token:
+                return jsonify({'message': 'Token is missing'}), 404
+            try:
+                jwt.decode(token, adminkey)
+            except:
+                return jsonify({'message': 'Token is invalid'}), 404
+            return f(*args, **kwargs)
+        return decorated
+
+    # def login(self, username, password):
+    #     """method for logging in the registered none admin-user"""
+    #     for user in users:
+    #         if user['username'] == username and user['password'] == password and user['username'] != 'admin' and user['password'] != 'password':
+    #             return {"status": 201,
+    #                     "message": "you have logged in successfully"}
+            
+
+    def adminlogin(self, username, password):
+        """method for logging in the adminstrator"""
+        
+        if username == 'admin' and password == 'ohpriz':
+            return {"status": 201, "message": "you have successfully logged in as the adminstrator"}
 
 
 
