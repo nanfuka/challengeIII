@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, request, json
 from app.controllers.user_controllers import User_controller
 from app.validators import Validators
+import jwt, datetime
 
 
 app = Flask(__name__)
 validators = Validators()
 user_controller = User_controller()
+
 
 @app.route('/')
 def index():
@@ -26,7 +28,7 @@ def signup():
     isAdmin = data.get('isAdmin')
     password = data.get('password')
     user = User_controller()
-
+    
     invalid_user_input = validators.validate_strings(firstname, lastname, othernames, username, data)
     if invalid_user_input:
         return jsonify({"status": 400, 'error': invalid_user_input}), 400 
@@ -57,11 +59,15 @@ def signup():
             data['username'],
             data['isAdmin'],
             data['password'])
-   
-        return jsonify({
-                "status": 201,
-                "message": "Successfully signedup with ireporter",
-                "data": newuserinput}), 201
+        loggedin_admin = user_controller.adminlogin(username, password)
+        if loggedin_admin:
+                token = jwt.encode({'username': data['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 'hodulop')
+                return jsonify(loggedin_admin, {"access_token": token.decode('utf-8')})
+
+        else:
+            token = jwt.encode({'username': data['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 'amauser')
+            return jsonify({"status": 201, "message": "You have successfully signedup with ireporter as a user", "data": newuserinput, "access_token": token.decode('utf-8')})
+
 
 
 
