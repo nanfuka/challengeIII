@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, json
 from app.controllers.user_controllers import User_controller
 from app.validators import Validators
-import jwt, datetime
+import jwt
+import datetime
 
 
 app = Flask(__name__)
@@ -28,24 +29,26 @@ def signup():
     isAdmin = data.get('isAdmin')
     password = data.get('password')
     user = User_controller()
-    
-    invalid_user_input = validators.validate_strings(firstname, lastname, othernames, username, data)
+
+    invalid_user_input = validators.validate_strings(
+        firstname, lastname, othernames, username, data)
     if invalid_user_input:
-        return jsonify({"status": 400, 'error': invalid_user_input}), 400 
+        return jsonify({"status": 400, 'error': invalid_user_input}), 400
     invalid_email = validators.validate_email(email)
     if invalid_email:
-        return jsonify({"status": 400, 'error': invalid_email}), 400 
+        return jsonify({"status": 400, 'error': invalid_email}), 400
     invalid_type = validators.validat_numbers(phoneNumber)
     if invalid_type:
-        return jsonify({"status": 400, 'error': invalid_type}), 400 
+        return jsonify({"status": 400, 'error': invalid_type}), 400
     validate_boolean = validators.validate_boolean(isAdmin)
     if validate_boolean:
         return jsonify({"status": 400, 'error': validate_boolean}), 400
     validate_password = validators.validate_password(password)
     if validate_password:
         return jsonify({"status": 400, 'error': validate_password}), 400
-        
-    invalid_detail = user_controller.check_repitition(username, email, password)
+
+    invalid_detail = user_controller.check_repitition(
+        username, email, password)
     if invalid_detail:
         return jsonify({"status": 400, 'error': invalid_detail}), 400
 
@@ -61,28 +64,22 @@ def signup():
             data['password'])
         loggedin_admin = user_controller.adminlogin(username, password)
         if loggedin_admin:
-                token = jwt.encode({'username': data['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 'hodulop')
-                return jsonify(loggedin_admin, {"access_token": token.decode('utf-8')})
+            admin_token = jwt.encode({'username': data['username'],
+                                      'exp': datetime.datetime.utcnow(
+            ) + datetime.timedelta(minutes=30)}, 'hodulop')
+            return jsonify({"status": 201, "data": [
+                {"token": admin_token.decode('utf-8'),
+                 "user": newuserinput,
+                 "message": "you have successfully logged in as a adminstrator"
+                 }]})
 
         else:
-            token = jwt.encode({'username': data['username'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 'amauser')
-            return jsonify({"status": 201, "message": "You have successfully signedup with ireporter as a user", "data": newuserinput, "access_token": token.decode('utf-8')})
-
-
-
-
-
-
-# {
-
-#   “status” : Integer,
-
-#   “data” : [{
-
-#     “token” :  “45erkjherht45495783”,
-
-#     “user”: {....} // the user object
-
-#   }]
-
-# }
+            token = jwt.encode({'username': data['username'],
+                                'exp': datetime.datetime.utcnow(
+            ) + datetime.timedelta(minutes=30)}, 'amauser')
+            return jsonify(
+                {"status": 201,
+                 "data": [{"token": token.decode('utf-8'),
+                           "user": newuserinput,
+                           "message":
+                           "You have signedup with ireporter as a user"}]})

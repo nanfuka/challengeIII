@@ -43,7 +43,6 @@ class Validators:
             return "Enter phone number"
         elif not isinstance(phoneNumber, int):
             return "phoneNumber should be made up of numbers"
-            
 
         # if phoneNumber != 10:
         #     return "digits of the phone number should be 10"
@@ -88,7 +87,8 @@ class Validators:
             return 'Enter a incident type.'
         elif incident_type != "redflag" and incident_type != "intervention":
             return 'Incident type should either be a redflag or intervention.'
-        elif status != "draft" and status != "underinvestigation" and status != "resolved" and status != "rejected":
+        elif status != "draft" and status != "underinvestigation" and \
+                status != "resolved" and status != "rejected":
             strg1 = 'status should either be draft'
             strg2 = 'underinvestigation, resolved or rejected'
             return strg1 + strg2

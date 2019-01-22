@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, json
 import re
 from ..db import DatabaseConnection
-from app.model.users import User 
+from app.model.users import User
 import jwt
 from functools import wraps
 
@@ -10,7 +10,6 @@ userkey = 'amauser'
 adminkey = 'hodulop'
 
 db = DatabaseConnection()
-
 
 
 class User_controller():
@@ -27,17 +26,23 @@ class User_controller():
         self.isAdmin = args[6]
         self.password = args[7]
 
-
         query = "INSERT INTO users (firstname, lastname, othernames, email, \
                 phoneNumber, username, isAdmin, password) \
-                VALUES ('{}', '{}', '{}','{}', '{}', '{}','{}', '{}');".format(self.firstname, self.lastname, self.othernames, self.email, self.phoneNumber, self.username, self.isAdmin, self.password)
+                VALUES ('{}', '{}', '{}','{}', '{}', '{}','{}', '{}');"\
+                    .format(self.firstname,
+                            self.lastname,
+                            self.othernames,
+                            self.email,
+                            self.phoneNumber,
+                            self.username,
+                            self.isAdmin,
+                            self.password)
         db.cursor.execute(query)
         user = User(*args)
         newuser = user.get_dictionary()
         return newuser
 
     def check_repitition(self, username, email, password):
-
         """This method checks through the list for values to avoid a user 
             from regestering twice
         """
@@ -49,7 +54,6 @@ class User_controller():
             return "password already exists, choose another one"
         elif len(password) < 4:
             return "password strength is too weak"
-
 
     def check_username_exists(self, username):
         """This method checks through the list for values to avoid a user 
@@ -80,7 +84,7 @@ class User_controller():
         user_details = db.cursor.fetchall()
         if user_details:
             return user_details
-    
+
     def drop_table(self, table_name):
         drop = f"DROP TABLE {table_name};"
         db.cursor.execute(drop)
@@ -111,23 +115,8 @@ class User_controller():
             return f(*args, **kwargs)
         return decorated
 
-    # def login(self, username, password):
-    #     """method for logging in the registered none admin-user"""
-    #     for user in users:
-    #         if user['username'] == username and user['password'] == password and user['username'] != 'admin' and user['password'] != 'password':
-    #             return {"status": 201,
-    #                     "message": "you have logged in successfully"}
-            
-
     def adminlogin(self, username, password):
         """method for logging in the adminstrator"""
-        
+
         if username == 'admin' and password == 'ohpriz':
-            return {"status": 201, "message": "you have successfully logged in as the adminstrator"}
-
-
-
-    
-
-
-    
+            return True
