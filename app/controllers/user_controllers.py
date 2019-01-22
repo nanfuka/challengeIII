@@ -74,6 +74,10 @@ class User_controller():
         user_details = db.cursor.fetchall()
         if user_details:
             return user_details
+    
+    def drop_table(self, table_name):
+        drop = f"DROP TABLE {table_name};"
+        db.cursor.execute(drop)
 
 
 
