@@ -89,7 +89,7 @@ class User_controller():
         drop = f"DROP TABLE {table_name};"
         db.cursor.execute(drop)
 
-    def customer_token(self, f):
+    def user_token(self, f):
         @wraps(f)
         def decorated(*args, **kwargs):
             token = request.headers.get('Authorization')
