@@ -165,3 +165,5 @@ class TestUsers(BaseTestCase):
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data['error'], 'Enter password')
+
+        
