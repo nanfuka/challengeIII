@@ -120,3 +120,65 @@ class User_controller():
 
         if username == 'admin' and password == 'ohpriz':
             return True
+
+    def login(self, username, password):
+        """method for logging in the registered none admin-user"""
+
+        query = f"""SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"""
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchall()
+        print(user_details)
+        if user_details:
+            return user_details
+        else:
+            return {"status": 401, "error": "Enter the right username and password"}
+
+    def logins(self, username, password):
+        query = "SELECT * FROM users WHERE username='{}';".format(username)
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone() 
+        if user_details:
+            
+            if user_details['password'] == password:
+                return user_details
+            return {"error":"wrong email credentials"}
+        return jsonify({"status":403, "error":"Invalid username and password"})
+
+    def loginss(self, username, password):
+        query = f"""SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"""
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone() 
+        if user_details:
+            return user_details
+#             {
+#   “status” : 200, 
+#   “data” : [{
+#     “token” : “ahd64jfhHG7832KFM5”,
+#     “user”: {....} // the user object
+#   }]
+
+
+        # if not user_details:
+        return jsonify({"error":"enter the right username and password"})
+
+    def get_all_users(self, username):
+        query = "SELECT * FROM users WHERE username='{}';".format(username)
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone()
+        return user_details
+       
+            
+
+
+        # for user in users:
+        #     if user['username'] == username and user['password'] == password and user['username'] != 'admin' and user['password'] != 'password':
+        #         return {"status": 201,
+        #                 "message": "you have logged in successfully"}
+            
+
+    def adminlogin(self, username, password):
+        """method for logging in the adminstrator"""
+        
+        if username == 'admin' and password == 'ohpriz':
+            return {"status": 201, "message": "you have successfully logged in as the adminstrator"}
+
