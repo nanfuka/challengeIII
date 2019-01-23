@@ -24,7 +24,19 @@ class DatabaseConnection:
         NOT NULL, email TEXT NOT NULL, phoneNumber INTEGER NOT NULL, isAdmin \
         BOOLEAN NOT NULL, password TEXT NOT NULL);"
 
+        create_incident_tables = "CREATE TABLE IF NOT EXISTS incidents(\
+                    ID SERIAL PRIMARY KEY NOT NULL,\
+                    createdOn DATE,\
+                    createdBy INTEGER REFERENCES users(userId),\
+                    incident_type VARCHAR(20) NOT NULL,\
+                    location TEXT NOT NULL,\
+                    status VARCHAR(20),\
+                    images TEXT,\
+                    videos TEXT,\
+                    comment TEXT NOT NULL);"
+
         self.cursor.execute(create_users_table)
+        self.cursor.execute(create_incident_tables)
 
 
 if __name__ == '__main__':

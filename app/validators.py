@@ -77,7 +77,7 @@ class Validators:
         status = args[2]
         images = args[3]
         videos = args[4]
-        data = args[5]
+        # data = args[5]
 
         if not createdby:
             return 'please enter the id of the creator of this redflag'
@@ -101,3 +101,5 @@ class Validators:
             return 'Enter the comment'
         if isinstance(comment, int):
             return 'Comment should be a string'
+
+    
