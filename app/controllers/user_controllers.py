@@ -7,7 +7,7 @@ from functools import wraps
 
 
 userkey = 'amauser'
-adminkey = 'hodulop'
+adminkey = 'amanadmin'
 
 db = DatabaseConnection()
 
@@ -59,8 +59,8 @@ class User_controller():
             return "Email already exists, choose another one"
         elif self.check_username_exists(username):
             return "Username already exists, choose another one"
-        elif self.check_password_exists(password):
-            return "password already exists, choose another one"
+        # elif self.check_password_exists(password):
+        #     return "password already exists, choose another one"
         elif len(password) < 4:
             return "password strength is too weak"
 
@@ -124,11 +124,35 @@ class User_controller():
             return f(*args, **kwargs)
         return decorated
 
-    def adminlogin(self, username, password):
+    def adminlogin(self, isAdmin):
         """method for logging in the adminstrator"""
+        # return self.get_admin['admin']
+        # return {"username": self.get_admin['admin'][8], "passwrod": self.get_admin['admin'][5], "isAdmin": self.get_admin['admin'][2]}
 
-        if username == 'admin' and password == 'ohpriz':
+        # if username == 'admin' and password == 'ohpriz':
+        #     return True
+        if isAdmin is True:
             return True
+
+    
+    def get_admin(self):
+        query = "SELECT * from users where isAdmin = 'true'"
+        db.cursor.execute(query)
+        admin_data = db.cursor.fetchone()
+        return admin_data
+    # def encode_token(payload, secretkey):
+    #     encode = jwt
+
+        
+        
+    # }
+
+    def get_user(self):
+        query = "SELECT * from users where isAdmin = False"
+        db.cursor.execute(query)
+        admin_data = db.cursor.fetchone()
+        return True
+
 
     def login(self, username, password):
         """method for logging in the registered none admin-user"""
@@ -137,12 +161,13 @@ class User_controller():
          '{username}' AND password = '{password}'"""
         db.cursor.execute(query)
         user_details = db.cursor.fetchall()
-        print(user_details)
-        if user_details:
-            return user_details
-        else:
-            return {"status": 401,
-                    "error": "Enter the right username and password"}
+        return user_details
+        # print(user_details)
+        # if user_details:
+        #     return user_details
+        # else:
+        #     return {"status": 401,
+        #             "error": "Enter the right username and password"}
 
     def logins(self, username, password):
         query = "SELECT * FROM users WHERE username='{}';".format(username)
@@ -161,10 +186,11 @@ class User_controller():
         AND password = '{password}'"""
         db.cursor.execute(query)
         user_details = db.cursor.fetchone()
-        if user_details:
-            return user_details
+        return user_details
+        # if user_details:
+        #     return user_details
 
-        return jsonify({"error": "enter the right username and password"})
+        # return jsonify({"error": "enter the right username and password"})
 
     def get_all_users(self, username):
         query = "SELECT * FROM users WHERE username='{}';".format(username)
@@ -174,14 +200,21 @@ class User_controller():
 
     def adminlogin(self, username, password):
         """method for logging in the adminstrator"""
+        query = "SELECT * FROM users WHERE username='{}' and password={};".format(username, password)
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone()
+        if user_details['isAdmin'] is True:
+            return True
 
-        if username == 'admin' and password == 'ohpriz':
-            return {"status": 201,
-                    "message":
-                    "you have successfully logged in as the adminstrator"}
 
     def get_all_users(self, username):
         query = "SELECT * FROM users WHERE username='{}';".format(username)
         db.cursor.execute(query)
         user_details = db.cursor.fetchone()
         return user_details
+
+    def admins_login(self, isAdmin):
+        if isAdmin == "true":
+            return True
+
+       

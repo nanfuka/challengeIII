@@ -9,6 +9,9 @@ class Validators:
         username = args[3]
         data = args[4]
 
+        # user_validation = re.compile(
+        #     "(^[a-zA-Z+$)")
+
         if not isinstance(firstname, str):
             return "firstname should be a string"
 
@@ -29,6 +32,15 @@ class Validators:
             return "username should be a string"
         elif not username or username.strip() == "":
             return "Enter username"
+        elif len(username) < 4:
+            return "username too short"
+
+
+        # if not user_validation.match(username):
+        #     return 'Invalid username, should consist of only letters'
+
+        # if not user_validation.match(lastname):
+        #     return 'Invalid lastname, should consist of only letters'
 
     def validate_email(self, email):
         email_validation = re.compile(
@@ -48,8 +60,8 @@ class Validators:
         #     return "digits of the phone number should be 10"
 
     def validate_boolean(self, isAdmin):
-        if isAdmin != 'false' and isAdmin != 'true':
-            return "IsAdmin should either be true or false"
+        if isAdmin.lower() != "false" and isAdmin.lower() != "true":
+            return "IsAdmin should either be  or False"
 
     def validate_password(self, password):
         if not password or password.strip == "":

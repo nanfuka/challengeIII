@@ -22,10 +22,7 @@ class Incidence:
                           videos,
                           comment):
         query = """ INSERT INTO incidents \
-        (createdby, incident_type, location, images, videos, comment) \
-                VALUES ('{}', '{}', '{}','{}', '{}', '{}') \
-                RETURNING id, createdby, incident_type, location, status,\ 
-                images, videos, comment;"""\
+        (createdby, incident_type, location, images, videos, comment) VALUES ('{}', '{}', '{}','{}', '{}', '{}') RETURNING id, createdby, incident_type, location, status,images, videos, comment;"""\
                 .format(createdby,
                         incident_type,
                         location,
@@ -54,11 +51,11 @@ class Incidence:
             "data": incident
         }), 200
 
-    def get_all_incidents(self, incident_type):
+    def get_all_incidents(self, incident_type, id):
         """Function that returns all incidents of a particular type"""
         db.cursor.execute(
-            "select * from incidents where incident_type = '{}'"
-            .format(incident_type))
+            "select * from incidents where incident_type = '{}' and id = '{}'"
+            .format(incident_type, id))
         incident = db.cursor.fetchall()
 
         if incident is None:

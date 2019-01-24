@@ -17,13 +17,17 @@ class DatabaseConnection:
 
         print('Connected to the database successfully.')
         print(self.db_name)
-
+        
+    def create_users_table(self):
         create_users_table = "CREATE TABLE IF NOT EXISTS users\
         (userId SERIAL NOT NULL PRIMARY KEY, firstname VARCHAR NOT NULL, \
         lastname VARCHAR NOT NULL, othernames VARCHAR NOT NULL,username TEXT \
         NOT NULL, email TEXT NOT NULL, phoneNumber INTEGER NOT NULL, isAdmin \
-        BOOLEAN NOT NULL, password TEXT NOT NULL);"
+        VARCHAR NOT NULL, password TEXT NOT NULL);"
+        self.cursor.execute(create_users_table)
+        self.connection.commit()
 
+    def create_incident_tables(self):   
         create_incident_tables = "CREATE TABLE IF NOT EXISTS incidents(\
                     ID SERIAL PRIMARY KEY NOT NULL,\
                     createdOn DATE,\
@@ -35,9 +39,10 @@ class DatabaseConnection:
                     videos TEXT,\
                     comment TEXT NOT NULL);"
 
-        self.cursor.execute(create_users_table)
         self.cursor.execute(create_incident_tables)
+       
 
+db_name = DatabaseConnection()
+db_name.create_users_table()
+db_name.create_incident_tables()
 
-if __name__ == '__main__':
-    db_name = DatabaseConnection()

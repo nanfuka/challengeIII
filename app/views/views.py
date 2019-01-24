@@ -15,7 +15,7 @@ incidence = Incidence()
 @app.route('/')
 def index():
     """index url"""
-    return jsonify({"status": 201, "message": "hi welcome to the ireporter"})
+    return jsonify({"status": 200, "message": "hi welcome to the ireporter"})
 
 
 @app.route('/api/v1/auth/signup', methods=['POST'])
@@ -63,29 +63,28 @@ def signup():
             username,
             isAdmin,
             password)
-        loggedin_admin = user_controller.adminlogin(username, password)
+
+        loggedin_admin = user_controller.admins_login(data['isAdmin'])
         if loggedin_admin:
-            admin_token = jwt.encode({'username': data['username'],
+            admin_token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
                                       'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, 'hodulop')
-            return jsonify(
-                {"status": 201, "data": [
-                 {"token": admin_token.decode('utf-8'),
-                  "user": new,
-                  "message":
-                  "you have successfully logged in as a adminstrator"
-                  }]})
+            ) + datetime.timedelta(minutes=30)}, 'amanadmin')
+            return jsonify({"status": 201, "data": [
+                {"token": admin_token.decode('utf-8'),
+                 "user": new,
+                 "message": "you have successfully logged in as a adminstrator"
+                 }]})
 
         else:
-            token = jwt.encode({'username': data['username'],
+            token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
                                 'exp': datetime.datetime.utcnow(
             ) + datetime.timedelta(minutes=30)}, 'amauser')
             return jsonify(
                 {"status": 201,
-                    "data": [{"token": token.decode('utf-8'),
-                              "user": new,
-                              "message":
-                              "You have signedup with ireporter as a user"}]})
+                 "data": [{"token": token.decode('utf-8'),
+                           "user": new,
+                           "message":
+                           "You have signedup with ireporter as a user"}]})
 
 
 @app.route('/api/v1/auth/login', methods=['POST'])
@@ -95,36 +94,34 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    logged_in = user_controller.login(username, password)
-    if logged_in:
-        loggedin_admin = user_controller.adminlogin(username, password)
-        if loggedin_admin:
-            admin_token = jwt.encode({'username': data['username'],
-                                      'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, 'hodulop')
-            return jsonify(
-                {"status": 200, "data":
-                 [{"user": user_controller.loginss(
-                                username, password),
-                   "token": admin_token.decode('utf-8'),
-                   "message":
-                   "you have successfully logged in as an administrator"}]})
+    loggedin_admin = user_controller.loginss(username, password)
+    if not loggedin_admin:
+        return jsonify({"status": 403, "error": "Invalid username and password"})
 
-        else:
-            token = jwt.encode({"username": data['username'],
+    if loggedin_admin:
+        admin_token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
                                 'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, 'amauser')
-            return jsonify({"status": 200, "data": [
-                {"user": user_controller.loginss(username, password),
-                 "token": token.decode('utf-8'),
-                 "message": "you have successfully logged in as a user"}]})
+        ) + datetime.timedelta(minutes=30)}, 'amanadmin')
+        return jsonify({"status": 201, "data": [
+            {"token": admin_token.decode('utf-8'),
+            # "user": new,
+            "message": "you have successfully logged in as a adminstrator"
+            }]})
+
     else:
-        return jsonify({"status": 403,
-                        "error": "Invalid username and password"})
+        token = jwt.encode({'username': data['username'],'isAdmin':data['isAdmin'],
+                            'exp': datetime.datetime.utcnow(
+        ) + datetime.timedelta(minutes=30)}, 'amauser')
+        return jsonify(
+            {"status": 201,
+            "data": [{"token": token.decode('utf-8'),
+                    # "user": new,
+                    "message":
+                    "You have signedup with ireporter as a user"}]})
 
 
 @app.route('/api/v1/auth/intervention', methods=['POST'])
-# @users.customer_token
+@user_controller.user_token
 def create_intervetion():
     """A user can create a redflag by entering all the required data"""
     data = request.get_json()
@@ -160,7 +157,7 @@ def create_intervetion():
 
 
 @app.route('/api/v1/interventions')
-# @users.admin_token
+@user_controller.admin_token
 def get_all_interventions():
     """ A user can retrieve all intervention records\
     only after including the bearer token in the header
@@ -169,20 +166,20 @@ def get_all_interventions():
 
 
 @app.route('/api/v1/interventions/<int:intervention_id>', methods=['DELETE'])
-# @users.admin_token
+@user_controller.user_token
 def get_intervention():
     incidence.delete_record(intervention_id, 'intervention')
 
 
 @app.route('/api/v1/interventions/<int:intervention_id>')
-# @users.admin_token
+@user_controller.user_token
 def get_one_intervention(intervention_id):
     return incidence.get_one_incident('intervention', intervention_id)
 
 
 @app.route(
     '/api/v1/intervention/<int:intervention_id>/location', methods=['PATCH'])
-# @jwt_required
+@user_controller.user_token
 def edit_location(intervention_id):
     """from this route, the user can edit the location and an intervation"""
     data = request.get_json()
@@ -201,7 +198,7 @@ def edit_location(intervention_id):
 
 @app.route(
     '/api/v1/interventions/<intervention_id>/comment', methods=['PATCH'])
-# @jwt_required
+@user_controller.user_token
 def edit_comment(intervention_id):
     """
     using this route a user can modify the location of a single redflag
