@@ -4,6 +4,7 @@ from app.controllers.incident_controllers import Incidence
 from app.validators import Validators
 import jwt
 import datetime
+from app.controllers.token import *
 
 
 app = Flask(__name__)
@@ -67,25 +68,13 @@ def signup():
 
         loggedin_admin = user_controller.admins_login(data['isAdmin'])
         if loggedin_admin:
-            admin_token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
-                                      'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, 'amanadmin')
-            return jsonify({"status": 201, "data": [
-                {"token": admin_token.decode('utf-8'),
-                 "user": new,
-                 "message": "you have successfully logged in as a adminstrator"
-                 }]})
+            admin_token = encode_token(new['userid'], data['isAdmin'])
+            print(admin_token)
 
-        else:
-            token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
-                                'exp': datetime.datetime.utcnow(
-            ) + datetime.timedelta(minutes=30)}, 'amauser')
-            return jsonify(
-                {"status": 201,
-                 "data": [{"token": token.decode('utf-8'),
-                           "user": new,
-                           "message":
-                           "You have signedup with ireporter as a user"}]})
+            return jsonify({"status": 201, "data": [{"token": admin_token, "user": new,"message": "you have successfully logged in as a adminstrator"}]})
+        if not loggedin_admin:
+            user_token = encode_token(new['userid'], data['isAdmin']) 
+            return jsonify({"status": 201, "data": [{"token": user_token, "user": new,"message": "you have successfully signedup in as a user"}]})
 
 
 @app.route('/api/v1/auth/login', methods=['POST'])
@@ -102,11 +91,12 @@ def login():
     adminlogin = user_controller.adminlogin(username, password)
     if adminlogin:
         print("admin", adminlogin)
-        admin_token = jwt.encode({'username': data['username'],
-                                'exp': datetime.datetime.utcnow(
-        ) + datetime.timedelta(minutes=30)}, 'amanadmin')
+
+        admin_token = encode_token(adminlogin['userid'], adminlogin['isadmin'])
+
+
         return jsonify({"status": 201, "data": [
-            {"token": admin_token.decode('utf-8'),
+            {"token": admin_token, "user":loggedin,
             # "user": new,
             "message": "you have successfully logged in as a adminstrator"
             }]})
@@ -114,23 +104,23 @@ def login():
     userlogin = user_controller.userlogin(username, password)
     if userlogin:
         print("user", userlogin)
-    
-        token = jwt.encode({'username': data['username'],
-                            'exp': datetime.datetime.utcnow(
-        ) + datetime.timedelta(minutes=30)}, 'amauser')
+
+        user_token = encode_token(userlogin['userid'], userlogin['isadmin'])
+
         return jsonify(
             {"status": 201,
-            "data": [{"token": token.decode('utf-8'),
-                    # "user": new,
+            "data": [{"token": user_token, "data":userlogin,
+                    
                     "message":
-                    "You have signedup with ireporter as a user"}]})
+                    "You have loggedin with ireporter as a user"}]})
 
 
 @app.route('/api/v1/auth/intervention', methods=['POST'])
-@user_controller.user_token
+# @restricted
 def create_intervetion():
     """A user can create a redflag by entering all the required data"""
     data = request.get_json()
+    print(get_current_identity)
     if not data:
         return jsonify({"status": 400, "message": "enter all fields"})
     createdby = data.get('createdby')
@@ -163,30 +153,33 @@ def create_intervetion():
 
 
 @app.route('/api/v1/auth/interventions')
-@user_controller.user_token
 def get_all_interventions():
     """ A user can retrieve all intervention records\
-    only after including the bearer token in the header
+    only her interventions.
     """
-    return incidence.get_all_incidents('intervention')
+    return jsonify({"data": incidence.get_all_incidents('intervention')})
 
 
 @app.route('/api/v1/interventions/<int:intervention_id>', methods=['DELETE'])
-@user_controller.user_token
-def get_intervention():
-    incidence.delete_record(intervention_id, 'intervention')
+# @restricted
+def get_intervention(intervention_id):
+    interventions = incidence.check_incidents(intervention_id, 'intervention')
+    if not interventions:
+        return jsonify({"status":200, "message":"there are currently no records to delete"})
+    delete = incidence.delete_record(intervention_id, 'intervention')
+    if delete:
+        return jsonify({"status": 200, "data": [{"id": intervention_id, "message": "“intervention record has been deleted”"}]})
+    else: return jsonify({"status": 404, "message": "intervantion_id is invalid"})
 
-
-@app.route('/api/v1/interventions/<int:intervention_id>')
-@user_controller.user_token
+@app.route('/api/v1/auth/interventions/<int:intervention_id>')
+# @restricted
 def get_one_intervention(intervention_id):
     return incidence.get_one_incident('intervention', intervention_id)
 
 
-@app.route(
-    '/api/v1/intervention/<int:intervention_id>/location', methods=['PATCH'])
-@user_controller.user_token
-def edit_location(intervention_id):
+@app.route('/api/v1/intervention/<int:intervention_id>/location', methods=['PATCH'])
+# @restricted
+def edit_location(intervention_id, location, intervention_id):
     """from this route, the user can edit the location and an intervation"""
     data = request.get_json()
     location = data.get('location')
@@ -202,22 +195,31 @@ def edit_location(intervention_id):
                     "message": "intervation id is not available"})
 
 
-@app.route(
-    '/api/v1/interventions/<intervention_id>/comment', methods=['PATCH'])
-@user_controller.user_token
-def edit_comment(intervention_id):
+@app.route('/api/v1/interventions/<intervention_id>/comment', methods=['PATCH'])
+# @restricted
+def edit_comment(intervention_id, userid):
     """
-    using this route a user can modify the location of a single redflag
+    using this route a user can modify the comment of a single intervention
     """
     data = request.get_json()
-    comment = data.get('comment')
+    location = data.get('location')
 
-    invalid_comment = validators.validate_coment(comment)
-    if invalid_comment:
-        return jsonify({"status": 400, 'error': invalid_comment}), 400
-    elif incidence.edits_comment(intervention_id, 'intervention', comment):
+    wrong_location = validators.validate_location(location)
+    if wrong_location:
+        return jsonify({"status": 400, 'error': wrong_location}), 400
+    elif incidence.edits_incident(intervention_id, 'intervention', location):
         return jsonify({"status": 200, "data":
                         [{"id": intervention_id,
-                          "message": "successfully edited a comment"}]})
-    return jsonify(
-        {"status": 200, "message": "intervation id is not available"})
+                            "message": "successfully edited a comment"}]})
+    return jsonify({"status": 200,
+                    "message": "intervation id is not available"})
+
+
+        # Admin can change the status of a record
+        #  to either under investigation, rejected
+        #   (in the event of a false claim) or 
+        #   resolved (in the event that the claim has
+        #    been investigated and resolved).
+
+
+

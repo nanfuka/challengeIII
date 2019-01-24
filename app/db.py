@@ -31,7 +31,7 @@ class DatabaseConnection:
         create_incident_tables = "CREATE TABLE IF NOT EXISTS incidents(\
                     ID SERIAL PRIMARY KEY NOT NULL,\
                     createdOn DATE,\
-                    createdBy INTEGER REFERENCES users(userId),\
+                    createdBy INTEGER REFERENCES users(userId) DEFAULT get_current_identity(),\
                     incident_type VARCHAR(20) NOT NULL,\
                     location TEXT NOT NULL,\
                     status VARCHAR(20),\

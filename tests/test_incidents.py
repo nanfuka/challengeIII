@@ -48,6 +48,14 @@ class TestIncidents(unittest.TestCase):
         self.assertEqual(data['data'][0]['id'], 1)
         self.assertEqual(data['data'][0]['message'], “Created an intervention record”)
 
+    def test_get_intervention(self):
+        response = self.test_client.post('/api/v1/auth/intervention)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(data['status'], 201)
+        self.assertEqual(data['data'][0]['id'], 1)
+        self.assertEqual(data['data'][0]['message'], “Created an intervention record”)
+
+
 
 
 

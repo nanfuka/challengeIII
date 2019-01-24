@@ -4,6 +4,7 @@ from ..db import DatabaseConnection
 from app.model.users import User
 import jwt
 from functools import wraps
+from app.controllers.token import get_current_identity
 
 
 userkey = 'amauser'
@@ -48,7 +49,7 @@ class User_controller():
                         isAdmin,
                         password)
         db.cursor.execute(query)
-        return db.cursor.fetchall()
+        return db.cursor.fetchone()
 
     def check_repitition(self, username, email, password):
         """This method checks through the list \
@@ -220,6 +221,13 @@ class User_controller():
         db.cursor.execute(query)
         user_details = db.cursor.fetchone()
         return user_details
+
+    def get_all_specific_(self, username):
+        query = "SELECT * FROM users WHERE username='{}';".format(username)
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone()
+        return user_details
+
 
     def admins_login(self, isAdmin):
         if isAdmin == "true":

@@ -6,6 +6,7 @@ from ..db import DatabaseConnection
 from app.model.users import User
 import jwt
 from functools import wraps
+from app.controllers.token import get_current_identity
 
 
 userkey = 'amauser'
@@ -42,32 +43,26 @@ class Incidence:
 
         if incident is None:
             return jsonify({
-                "status": 404,
-                "message": "There are currently no  " + type + "in the system"
-            }), 404
+                "status": 200,
+                "message": "There is curretly no required data in the system"
+            }), 200
 
         return jsonify({
             "status": 200,
             "data": incident
         }), 200
-
-    def get_all_incidents(self, incident_type, userid):
+    
+    def get_all_incidents(self, incident_type):
         """Function that returns all incidents of a particular type"""
-        db.cursor.execute(
-            "select * from incidents where incident_type = '{}' and createdby = '{}'"
-            .format(incident_type, userid))
-        incident = db.cursor.fetchall()
+        # db.cursor.execute(
+        #     "select * from incidents where incident_type = '{}'"
+        #     .format(incident_type))
+        # incident = db.cursor.fetchall()
+        # return incident
+        query = "SELECT * FROM incidents WHERE incident_type = '{}';".format(incident_type)
+        db.cursor.execute(query)
+        return db.cursor.fetchall()
 
-        if incident is None:
-            return jsonify({
-                "status": 200,
-                "message": "The " + type + " was not found"
-            })
-
-        return jsonify({
-            "status": 200,
-            "data": incident
-        })
 
     def edits_incident(self, incident_id, incident_type, location):
         query = "UPDATE incidents SET location = '{}' WHERE id = '{}'\
@@ -84,20 +79,33 @@ class Incidence:
         return db.cursor.fetchall()
 
     def delete_record(self, incident_id, incident_type):
-        """method for deleting a particular redflag at a certain redflag_id"""
-        update = db.cursor.execute(
-            "DELETE * FROM  incidents WHERE incident_id = '{}' and \
-            incident_type ='{}'".format(incident_id, incident_type))
+        """method for deleting a particular intervention"""
+        query = "DELETE FROM incidents WHERE id = {} and \
+            incident_type ='{}'".format(incident_id, incident_type)
 
-        if update:
-            return [{"message": "Updated redflag", "id": redflag_id}]
-        else:
-            return False
-            return jsonify(
-                {"status": 200, 
-                 "data": [{"id": redflag_id, 
-                           "message": "red-flag record has been deleted"}]})
-        return jsonify({"status": 200, "message": "no redflag to delete"}), 200
+        db.cursor.execute(query)
+        return db.cursor.fetchall()
+        update = db.cursor.execute()
+        return "deleted"
+
+    def check_incidents(self, incident_id, incident_type):
+        """method for checking if there are any interventions in the system"""
+        query = "SELECT * FROM incidents WHERE id = {} and \
+            incident_type ='{}'".format(incident_id, incident_type)
+        db.cursor.execute(query)
+        return db.cursor.fetchall()
+
+
+
+        # if update:
+        #     return jsonify({"data":[{"message": "intervention record has been deleted", "id": redflag_id}]})
+        # else:
+        #     return False
+        #     return jsonify(
+        #         {"status": 200, 
+        #          "data": [{"id": redflag_id, 
+        #                    "message": "red-flag record has been deleted"}]})
+        # return jsonify({"status": 200, "message": "no redflag to delete"}), 200
 
     def modify_status(self, incident_type, incident_id):
         "Method for modifying the status of a particular incident"
