@@ -200,11 +200,19 @@ class User_controller():
 
     def adminlogin(self, username, password):
         """method for logging in the adminstrator"""
-        query = "SELECT * FROM users WHERE username='{}' and password={};".format(username, password)
+        query = "SELECT * FROM users WHERE username='{}' and password='{}';".format(username, password)
         db.cursor.execute(query)
         user_details = db.cursor.fetchone()
-        if user_details['isAdmin'] is True:
-            return True
+        if user_details['isadmin']== "true":
+            return user_details
+
+    def userlogin(self, username, password):
+        """method for logging in the adminstrator"""
+        query = "SELECT * FROM users WHERE username='{}' and password='{}';".format(username, password)
+        db.cursor.execute(query)
+        user_details = db.cursor.fetchone()
+        if user_details['isadmin']== "false":
+            return user_details
 
 
     def get_all_users(self, username):

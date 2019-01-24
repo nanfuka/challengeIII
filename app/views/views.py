@@ -15,6 +15,7 @@ incidence = Incidence()
 @app.route('/')
 def index():
     """index url"""
+    
     return jsonify({"status": 200, "message": "hi welcome to the ireporter"})
 
 
@@ -94,12 +95,14 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    loggedin_admin = user_controller.loginss(username, password)
-    if not loggedin_admin:
+    loggedin = user_controller.loginss(username, password)
+    if not loggedin:
         return jsonify({"status": 403, "error": "Invalid username and password"})
-
-    if loggedin_admin:
-        admin_token = jwt.encode({'username': data['username'],"isAdmin": data['isAdmin'],
+    
+    adminlogin = user_controller.adminlogin(username, password)
+    if adminlogin:
+        print("admin", adminlogin)
+        admin_token = jwt.encode({'username': data['username'],
                                 'exp': datetime.datetime.utcnow(
         ) + datetime.timedelta(minutes=30)}, 'amanadmin')
         return jsonify({"status": 201, "data": [
@@ -108,8 +111,11 @@ def login():
             "message": "you have successfully logged in as a adminstrator"
             }]})
 
-    else:
-        token = jwt.encode({'username': data['username'],'isAdmin':data['isAdmin'],
+    userlogin = user_controller.userlogin(username, password)
+    if userlogin:
+        print("user", userlogin)
+    
+        token = jwt.encode({'username': data['username'],
                             'exp': datetime.datetime.utcnow(
         ) + datetime.timedelta(minutes=30)}, 'amauser')
         return jsonify(
@@ -156,8 +162,8 @@ def create_intervetion():
     return jsonify({"status": 201, "user": new_incident})
 
 
-@app.route('/api/v1/interventions')
-@user_controller.admin_token
+@app.route('/api/v1/auth/interventions')
+@user_controller.user_token
 def get_all_interventions():
     """ A user can retrieve all intervention records\
     only after including the bearer token in the header

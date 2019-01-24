@@ -51,11 +51,11 @@ class Incidence:
             "data": incident
         }), 200
 
-    def get_all_incidents(self, incident_type, id):
+    def get_all_incidents(self, incident_type, userid):
         """Function that returns all incidents of a particular type"""
         db.cursor.execute(
-            "select * from incidents where incident_type = '{}' and id = '{}'"
-            .format(incident_type, id))
+            "select * from incidents where incident_type = '{}' and createdby = '{}'"
+            .format(incident_type, userid))
         incident = db.cursor.fetchall()
 
         if incident is None:

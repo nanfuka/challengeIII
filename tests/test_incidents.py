@@ -44,6 +44,14 @@ class TestIncidents(unittest.TestCase):
         """tests if an intervention can be created """
         response = self.test_client.post('/api/v1/auth/intervention', data=self.report)
         self.assertEqual(200, response.status_code)
+        self.assertEqual(data['status'], 201)
+        self.assertEqual(data['data'][0]['id'], 1)
+        self.assertEqual(data['data'][0]['message'], “Created an intervention record”)
+
+
+
+
+
 
 
         
