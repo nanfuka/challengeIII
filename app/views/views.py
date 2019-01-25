@@ -116,7 +116,7 @@ def login():
 
 
 @app.route('/api/v1/auth/intervention', methods=['POST'])
-# @restricted
+@user_controller.user_token
 def create_intervetion():
     """A user can create a redflag by entering all the required data"""
     data = request.get_json()
@@ -130,6 +130,10 @@ def create_intervetion():
     status = "draft"
     images = data.get('images')
     videos = data.get('videos')
+    verified_user = incidence.verify_createdby_value(createdby, 'intervention')
+    if not verified_user:
+        return jsonify({"message":"the user posting is not in the system"})
+    
     if len(data) < 3:
         return jsonify({"status": 400, "message": "enter all fields"})
 
@@ -157,6 +161,7 @@ def create_intervetion():
 
 
 @app.route('/api/v1/auth/interventions')
+# @admin_token
 def get_all_interventions():
     """ A user can retrieve all intervention records\
     only her interventions.
@@ -165,7 +170,7 @@ def get_all_interventions():
 
 
 @app.route('/api/v1/auth/interventions/<int:intervention_id>', methods=['DELETE'])
-# @restricted
+# @admin_token
 def get_intervention(intervention_id):
     if not incidence.check_incidents(intervention_id, 'intervention'):
         return jsonify({"status":200, "message":"intervention_id supplied is not in the system"})
@@ -179,7 +184,8 @@ def get_intervention(intervention_id):
     else: return jsonify({"status": 404, "message": "intervantion_id is invalid"})
 
 @app.route('/api/v1/auth/interventions/<int:intervention_id>')
-# @restricted
+# @user_token
+# @admin_token
 def get_one_intervention(intervention_id):
     data = incidence.get_one_incident('intervention', intervention_id)
     if not data:
@@ -193,7 +199,7 @@ def get_one_intervention(intervention_id):
 
 
 @app.route('/api/v1/intervention/<int:intervention_id>/location', methods=['PATCH'])
-# @restricted
+# @user_token
 def edit_location(intervention_id):
     """from this route, the user can edit the location and an intervation"""
     data = incidence.get_one_incident('intervention', intervention_id)
@@ -214,7 +220,7 @@ def edit_location(intervention_id):
 
 
 @app.route('/api/v1/auth/interventions/int:<intervention_id>/comment', methods=['PATCH'])
-# @restricted
+# @user_token
 def edit_comment(intervention_id):
     """
     using this route a user can modify the comment of a single intervention
@@ -234,7 +240,7 @@ def edit_comment(intervention_id):
     
 
 @app.route('/api/v1/auth/interventions/int:<intervention_id>/status', methods=['PATCH'])
-# @restricted
+# @admin_token
 def edit_status(intervention_id):
     """
     using this route a user can modify the comment of a single intervention
@@ -252,13 +258,6 @@ def edit_status(intervention_id):
     return jsonify({"status": 200,
                     "message": "intervation id is not available"})
 
-
-
-        # Admin can change the status of a record
-        #  to either under investigation, rejected
-        #   (in the event of a false claim) or 
-        #   resolved (in the event that the claim has
-        #    been investigated and resolved).
 
 
 

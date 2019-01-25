@@ -121,4 +121,3 @@ class Validators:
             strg2 = 'underinvestigation, resolved or rejected'
             return strg1 + strg2
 
-    

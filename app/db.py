@@ -5,8 +5,10 @@ import os
 
 class DatabaseConnection:
     def __init__(self):
-
-        self.db_name = 'irepo'
+        if os.getenv('DB_NAME') =='irepo':
+            self.db_name = 'irepo'
+        else:
+            self.db_name = 'wereport'
 
         self.connection = psycopg2.connect(
             dbname=self.db_name, user='postgres', host='localhost',
@@ -48,5 +50,3 @@ if __name__ == '__main__':
     db_name = DatabaseConnection()
     db_name.create_users_table()
     db_name.create_incident_tables()
-
-
