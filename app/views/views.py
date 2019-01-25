@@ -98,7 +98,7 @@ def login():
         return jsonify({"status": 201, "data": [
             {"token": admin_token, "user":loggedin,
             # "user": new,
-            "message": "you have successfully logged in as a adminstrator"
+            "message": "you have successfully signedup in as a adminstrator"
             }]})
 
     userlogin = user_controller.userlogin(username, password)
@@ -133,6 +133,10 @@ def create_intervetion():
     if len(data) < 3:
         return jsonify({"status": 400, "message": "enter all fields"})
 
+    valid_createdby = incidence.verify_createdby_value(createdby, 'intervention')
+    if not valid_createdby:
+        return jsonify({"error":"created_by value does not reference to any registered user."})
+
     error_message = validators.validate_input(
         createdby, incident_type, status, images, data)
     wrong_location = validators.validate_location(location)
@@ -160,9 +164,12 @@ def get_all_interventions():
     return jsonify({"data": incidence.get_all_incidents('intervention')})
 
 
-@app.route('/api/v1/interventions/<int:intervention_id>', methods=['DELETE'])
+@app.route('/api/v1/auth/interventions/<int:intervention_id>', methods=['DELETE'])
 # @restricted
 def get_intervention(intervention_id):
+    if not incidence.check_incidents(intervention_id, 'intervention'):
+        return jsonify({"status":200, "message":"intervention_id supplied is not in the system"})
+    
     interventions = incidence.check_incidents(intervention_id, 'intervention')
     if not interventions:
         return jsonify({"status":200, "message":"there are currently no records to delete"})
@@ -174,12 +181,17 @@ def get_intervention(intervention_id):
 @app.route('/api/v1/auth/interventions/<int:intervention_id>')
 # @restricted
 def get_one_intervention(intervention_id):
-    return incidence.get_one_incident('intervention', intervention_id)
+    """Route from where only one intervention is returned"""
+    data = incidence.get_one_incident('intervention', intervention_id)
+    if not data:
+        return jsonify({"status":200, "message":"There are currently no intervention records"})
+
+    return jsonify({"data":incidence.get_one_incident('intervention', intervention_id)})
 
 
 @app.route('/api/v1/intervention/<int:intervention_id>/location', methods=['PATCH'])
 # @restricted
-def edit_location(intervention_id, location, intervention_id):
+def edit_location(intervention_id):
     """from this route, the user can edit the location and an intervation"""
     data = request.get_json()
     location = data.get('location')
@@ -195,7 +207,7 @@ def edit_location(intervention_id, location, intervention_id):
                     "message": "intervation id is not available"})
 
 
-@app.route('/api/v1/interventions/<intervention_id>/comment', methods=['PATCH'])
+@app.route('/api/v1/interventions/int:<intervention_id>/comment', methods=['PATCH'])
 # @restricted
 def edit_comment(intervention_id, userid):
     """
@@ -204,15 +216,18 @@ def edit_comment(intervention_id, userid):
     data = request.get_json()
     location = data.get('location')
 
-    wrong_location = validators.validate_location(location)
-    if wrong_location:
-        return jsonify({"status": 400, 'error': wrong_location}), 400
-    elif incidence.edits_incident(intervention_id, 'intervention', location):
-        return jsonify({"status": 200, "data":
-                        [{"id": intervention_id,
-                            "message": "successfully edited a comment"}]})
-    return jsonify({"status": 200,
-                    "message": "intervation id is not available"})
+    invalid_comment = incidence.validate_coment(comment)
+
+    if invalid_comment:
+        return jsonify()
+    
+    # if invalid_comment:
+    #     return jsonify({"status": 400, "error": invalid comment})
+    # elif incidence.edits_incident(intervention_id, 'comment', comment):
+    #     return jsonify({"status": 200, "data":[{"id": intervention_id,
+    # message": "successfully edited a comment"}]})
+    # return jsonify({"status": 200,
+    #                 "message": "intervation id is not available"})
 
 
         # Admin can change the status of a record

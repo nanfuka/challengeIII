@@ -6,7 +6,7 @@ import os
 class DatabaseConnection:
     def __init__(self):
 
-        self.db_name = 'reporti'
+        self.db_name = 'irepo'
 
         self.connection = psycopg2.connect(
             dbname=self.db_name, user='postgres', host='localhost',
@@ -29,9 +29,9 @@ class DatabaseConnection:
 
     def create_incident_tables(self):   
         create_incident_tables = "CREATE TABLE IF NOT EXISTS incidents(\
-                    ID SERIAL PRIMARY KEY NOT NULL,\
+                    incident_id SERIAL PRIMARY KEY NOT NULL,\
                     createdOn DATE,\
-                    createdBy INTEGER REFERENCES users(userId) DEFAULT get_current_identity(),\
+                    createdBy INTEGER REFERENCES users(userId),\
                     incident_type VARCHAR(20) NOT NULL,\
                     location TEXT NOT NULL,\
                     status VARCHAR(20),\
@@ -42,7 +42,11 @@ class DatabaseConnection:
         self.cursor.execute(create_incident_tables)
        
 
-db_name = DatabaseConnection()
-db_name.create_users_table()
-db_name.create_incident_tables()
+
+
+if __name__ == '__main__':
+    db_name = DatabaseConnection()
+    db_name.create_users_table()
+    db_name.create_incident_tables()
+
 

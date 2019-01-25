@@ -23,7 +23,7 @@ class Incidence:
                           videos,
                           comment):
         query = """ INSERT INTO incidents \
-        (createdby, incident_type, location, images, videos, comment) VALUES ('{}', '{}', '{}','{}', '{}', '{}') RETURNING id, createdby, incident_type, location, status,images, videos, comment;"""\
+        (createdby, incident_type, location, images, videos, comment) VALUES ('{}', '{}', '{}','{}', '{}', '{}') RETURNING incident_id, createdby, incident_type, location, status,images, videos, comment;"""\
                 .format(createdby,
                         incident_type,
                         location,
@@ -34,23 +34,13 @@ class Incidence:
         db.cursor.execute(query)
         return db.cursor.fetchall()
 
-    def get_one_incident(self, incident_type, intervention_id):
+    def get_one_incident(self, incident_type, incident_id):
         """Function that returns a single incidence"""
-        db.cursor.execute(
-            "select * from incidents where incident_type = '{}' and id = '{}'"
-            .format(incident_type, intervention_id))
-        incident = db.cursor.fetchone()
 
-        if incident is None:
-            return jsonify({
-                "status": 200,
-                "message": "There is curretly no required data in the system"
-            }), 200
-
-        return jsonify({
-            "status": 200,
-            "data": incident
-        }), 200
+        query = "SELECT * FROM incidents WHERE incident_type = '{}' AND incident_id = {};".format(
+            incident_type, incident_id)
+        db.cursor.execute(query)
+        return db.cursor.fetchall()
     
     def get_all_incidents(self, incident_type):
         """Function that returns all incidents of a particular type"""
@@ -69,7 +59,7 @@ class Incidence:
          AND incident_type = '{}' RETURNING * ;".format(
             location, incident_id, incident_type)
         db.cursor.execute(query)
-        return db.cursor.fetchall()
+        return db.cursor.fetchone()
 
     def edits_comment(self, incident_id, incident_type, comment):
         query = "UPDATE incidents SET comment = '{}' WHERE id = '{}' \
@@ -90,8 +80,15 @@ class Incidence:
 
     def check_incidents(self, incident_id, incident_type):
         """method for checking if there are any interventions in the system"""
-        query = "SELECT * FROM incidents WHERE id = {} and \
+        query = "SELECT * FROM incidents WHERE incident_id = {} and \
             incident_type ='{}'".format(incident_id, incident_type)
+        db.cursor.execute(query)
+        return db.cursor.fetchall()
+
+    def verify_createdby_value(self, createdby, incident_type):
+        """method for checking if there are any interventions in the system"""
+        query = "SELECT * FROM users WHERE userid = {} \
+            ".format(createdby, incident_type)
         db.cursor.execute(query)
         return db.cursor.fetchall()
 

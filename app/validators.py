@@ -111,7 +111,7 @@ class Validators:
         """method which validates comment"""
         if not comment or comment.strip() == "":
             return 'Enter the comment'
-        if isinstance(comment, int):
+        if not comment.isalpha():
             return 'Comment should be a string'
 
     

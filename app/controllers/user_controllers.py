@@ -233,4 +233,30 @@ class User_controller():
         if isAdmin == "true":
             return True
 
+    def user_token(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = request.headers.get('Authorization')
+            if not token:
+                return jsonify({'message': 'Token is missing'}), 404
+            try:
+                jwt.decode(token, userkey)
+            except:
+                return jsonify({'message': 'Token is invalid'}), 404
+            return f(*args, **kwargs)
+        return decorated
+
+    def admin_token(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = request.headers.get('Authorization')
+            if not token:
+                return jsonify({'message': 'Token is missing'}), 404
+            try:
+                jwt.decode(token, adminkey)
+            except:
+                return jsonify({'message': 'Token is invalid'}), 404
+            return f(*args, **kwargs)
+        return decorated
+
        
