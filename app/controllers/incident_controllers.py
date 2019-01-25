@@ -44,25 +44,20 @@ class Incidence:
     
     def get_all_incidents(self, incident_type):
         """Function that returns all incidents of a particular type"""
-        # db.cursor.execute(
-        #     "select * from incidents where incident_type = '{}'"
-        #     .format(incident_type))
-        # incident = db.cursor.fetchall()
-        # return incident
         query = "SELECT * FROM incidents WHERE incident_type = '{}';".format(incident_type)
         db.cursor.execute(query)
         return db.cursor.fetchall()
 
 
     def edits_incident(self, incident_id, incident_type, location):
-        query = "UPDATE incidents SET location = '{}' WHERE id = '{}'\
+        query = "UPDATE incidents SET location = '{}' WHERE incident_id = '{}'\
          AND incident_type = '{}' RETURNING * ;".format(
             location, incident_id, incident_type)
         db.cursor.execute(query)
         return db.cursor.fetchone()
 
     def edits_comment(self, incident_id, incident_type, comment):
-        query = "UPDATE incidents SET comment = '{}' WHERE id = '{}' \
+        query = "UPDATE incidents SET comment = '{}' WHERE incident_id = '{}' \
         AND incident_type = '{}' RETURNING * ;".format(
             comment, incident_id, incident_type)
         db.cursor.execute(query)
@@ -70,14 +65,11 @@ class Incidence:
 
     def delete_record(self, incident_id, incident_type):
         """method for deleting a particular intervention"""
-        query = "DELETE FROM incidents WHERE id = {} and \
+        
+        query = "DELETE FROM incidents WHERE u USING incidents WHERE incident_id = {} AND \
             incident_type ='{}'".format(incident_id, incident_type)
 
-        db.cursor.execute(query)
-        return db.cursor.fetchall()
-        update = db.cursor.execute()
-        return "deleted"
-
+   
     def check_incidents(self, incident_id, incident_type):
         """method for checking if there are any interventions in the system"""
         query = "SELECT * FROM incidents WHERE incident_id = {} and \
@@ -91,18 +83,6 @@ class Incidence:
             ".format(createdby, incident_type)
         db.cursor.execute(query)
         return db.cursor.fetchall()
-
-
-
-        # if update:
-        #     return jsonify({"data":[{"message": "intervention record has been deleted", "id": redflag_id}]})
-        # else:
-        #     return False
-        #     return jsonify(
-        #         {"status": 200, 
-        #          "data": [{"id": redflag_id, 
-        #                    "message": "red-flag record has been deleted"}]})
-        # return jsonify({"status": 200, "message": "no redflag to delete"}), 200
 
     def modify_status(self, incident_type, incident_id):
         "Method for modifying the status of a particular incident"

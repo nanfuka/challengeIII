@@ -114,4 +114,11 @@ class Validators:
         if not comment.isalpha():
             return 'Comment should be a string'
 
+    def validate_comment(self):
+        if status != "draft" and status != "underinvestigation" and \
+            status != "resolved" and status != "rejected":
+            strg1 = 'status should either be draft'
+            strg2 = 'underinvestigation, resolved or rejected'
+            return strg1 + strg2
+
     

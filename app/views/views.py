@@ -181,6 +181,9 @@ def get_intervention(intervention_id):
 @app.route('/api/v1/auth/interventions/<int:intervention_id>')
 # @restricted
 def get_one_intervention(intervention_id):
+    data = incidence.get_one_incident('intervention', intervention_id)
+    if not data:
+        return jsonify({"status":200, "message":"There are currently no intervention records"})
     """Route from where only one intervention is returned"""
     data = incidence.get_one_incident('intervention', intervention_id)
     if not data:
@@ -193,6 +196,9 @@ def get_one_intervention(intervention_id):
 # @restricted
 def edit_location(intervention_id):
     """from this route, the user can edit the location and an intervation"""
+    data = incidence.get_one_incident('intervention', intervention_id)
+    if not data:
+        return jsonify({"status":200, "message":"There are currently no intervention records"})
     data = request.get_json()
     location = data.get('location')
 
@@ -207,27 +213,45 @@ def edit_location(intervention_id):
                     "message": "intervation id is not available"})
 
 
-@app.route('/api/v1/interventions/int:<intervention_id>/comment', methods=['PATCH'])
+@app.route('/api/v1/auth/interventions/int:<intervention_id>/comment', methods=['PATCH'])
 # @restricted
-def edit_comment(intervention_id, userid):
+def edit_comment(intervention_id):
     """
     using this route a user can modify the comment of a single intervention
     """
     data = request.get_json()
-    location = data.get('location')
+    comment = data.get('comment')
 
-    invalid_comment = incidence.validate_coment(comment)
-
-    if invalid_comment:
-        return jsonify()
+    wrong_comment = incident.edits_comment(intervention_id, 'intervention', comment)
+    if wrong_comment:
+        return jsonify({"status": 400, 'error': wrong_comment}), 400
+    elif incidence.edits_incident(intervention_id, 'intervention', comment):
+        return jsonify({"status": 200, "data":
+                        [{"id": intervention_id,
+                            "message": "successfully edited a comment"}]})
+    return jsonify({"status": 200,
+                    "message": "intervation id is not available"})
     
-    # if invalid_comment:
-    #     return jsonify({"status": 400, "error": invalid comment})
-    # elif incidence.edits_incident(intervention_id, 'comment', comment):
-    #     return jsonify({"status": 200, "data":[{"id": intervention_id,
-    # message": "successfully edited a comment"}]})
-    # return jsonify({"status": 200,
-    #                 "message": "intervation id is not available"})
+
+@app.route('/api/v1/auth/interventions/int:<intervention_id>/status', methods=['PATCH'])
+# @restricted
+def edit_status(intervention_id):
+    """
+    using this route a user can modify the comment of a single intervention
+    """
+    data = request.get_json()
+    status = data.get('status')
+
+    wrong_comment = incident.edits_comment(intervention_id, 'intervention', comment)
+    if wrong_comment:
+        return jsonify({"status": 400, 'error': wrong_comment}), 400
+    elif incidence.edits_incident(intervention_id, 'intervention', comment):
+        return jsonify({"status": 200, "data":
+                        [{"id": intervention_id,
+                            "message": "successfully edited a comment"}]})
+    return jsonify({"status": 200,
+                    "message": "intervation id is not available"})
+
 
 
         # Admin can change the status of a record

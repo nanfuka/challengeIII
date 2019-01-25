@@ -60,8 +60,7 @@ class User_controller():
             return "Email already exists, choose another one"
         elif self.check_username_exists(username):
             return "Username already exists, choose another one"
-        # elif self.check_password_exists(password):
-        #     return "password already exists, choose another one"
+
         elif len(password) < 4:
             return "password strength is too weak"
 
@@ -127,11 +126,7 @@ class User_controller():
 
     def adminlogin(self, isAdmin):
         """method for logging in the adminstrator"""
-        # return self.get_admin['admin']
-        # return {"username": self.get_admin['admin'][8], "passwrod": self.get_admin['admin'][5], "isAdmin": self.get_admin['admin'][2]}
 
-        # if username == 'admin' and password == 'ohpriz':
-        #     return True
         if isAdmin is True:
             return True
 
@@ -141,12 +136,7 @@ class User_controller():
         db.cursor.execute(query)
         admin_data = db.cursor.fetchone()
         return admin_data
-    # def encode_token(payload, secretkey):
-    #     encode = jwt
 
-        
-        
-    # }
 
     def get_user(self):
         query = "SELECT * from users where isAdmin = False"
@@ -163,12 +153,7 @@ class User_controller():
         db.cursor.execute(query)
         user_details = db.cursor.fetchall()
         return user_details
-        # print(user_details)
-        # if user_details:
-        #     return user_details
-        # else:
-        #     return {"status": 401,
-        #             "error": "Enter the right username and password"}
+
 
     def logins(self, username, password):
         query = "SELECT * FROM users WHERE username='{}';".format(username)
