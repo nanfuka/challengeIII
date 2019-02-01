@@ -6,7 +6,7 @@ from ..db import DatabaseConnection
 from app.model.users import User
 import jwt
 from functools import wraps
-from app.controllers.token import get_current_identity
+
 
 
 userkey = 'amauser'

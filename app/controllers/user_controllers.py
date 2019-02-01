@@ -4,7 +4,8 @@ from ..db import DatabaseConnection
 from app.model.users import User
 import jwt
 from functools import wraps
-from app.controllers.token import get_current_identity
+from datetime import datetime, timedelta
+
 
 
 userkey = 'amauser'
@@ -98,31 +99,101 @@ class User_controller():
         drop = f"DROP TABLE {table_name};"
         db.cursor.execute(drop)
 
-    def user_token(self, f):
-        @wraps(f)
-        def decorated(*args, **kwargs):
-            token = request.headers.get('Authorization')
-            if not token:
-                return jsonify({'message': 'Token is missing'}), 404
-            try:
-                jwt.decode(token, userkey)
-            except:
-                return jsonify({'message': 'Token is invalid'}), 404
-            return f(*args, **kwargs)
-        return decorated
+    # def user_token(self, f):
+    #     @wraps(f)
+    #     def decorated(*args, **kwargs):
+    #         token = request.headers.get('Authorization')
+    #         if not token:
+    #             return jsonify({'message': 'Token is missing'}), 404
+    #         try:
+    #             jwt.decode(token, userkey)
+    #         except:
+    #             return jsonify({'message': 'Token is invalid'}), 404
+    #         return f(*args, **kwargs)
+    #     return decorated
 
-    def admin_token(self, f):
+    def ttoken(self, f):
         @wraps(f)
-        def decorated(*args, **kwargs):
-            token = request.headers.get('Authorization')
-            if not token:
-                return jsonify({'message': 'Token is missing'}), 404
+        def _verify(*args, **kwargs):
+            auth_headers = request.headers.get('Authorization', '').split()
             try:
-                jwt.decode(token, adminkey)
-            except:
-                return jsonify({'message': 'Token is invalid'}), 404
-            return f(*args, **kwargs)
-        return decorated
+                token = auth_headers[1]
+                print(token)
+                if not token:
+                    error = jsonify({'message': 'Token is missing'}), 403
+                data = jwt.decode(token, 'amanadmin')
+                return f(*args, **kwargs)
+            except IndexError:
+                error = jsonify({
+                    "message": "Token does not exist",
+                    "authenticated": False
+                }), 401
+            except jwt.DecodeError:
+                error = jsonify({
+                    "message": "Token Decode Fa iled!",
+                    "authenticated": False
+                }), 401
+            except jwt.ExpiredSignatureError:
+                error = jsonify({
+                    'message': 'Expired token. Please Log In again.',
+                    'authenticated': False
+                }), 401
+            except jwt.InvalidTokenError:
+                error = jsonify({
+                    'message': 'Invalid token. Please Log In again',
+                    'authenticated': False
+                }), 401
+            return error
+
+        return _verify
+
+    def user_ttoken(self, f):
+        @wraps(f)
+        def _verify(*args, **kwargs):
+            auth_headers = request.headers.get('Authorization', '').split()
+            try:
+                token = auth_headers[1]
+                print(token)
+                if not token:
+                    error = jsonify({'message': 'Token is missing'}), 403
+                data = jwt.decode(token, 'amauser')
+                return f(*args, **kwargs)
+            except IndexError:
+                error = jsonify({
+                    "message": "Token does not exist",
+                    "authenticated": False
+                }), 401
+            except jwt.DecodeError:
+                error = jsonify({
+                    "message": "Token Decode Fa iled!",
+                    "authenticated": False
+                }), 401
+            except jwt.ExpiredSignatureError:
+                error = jsonify({
+                    'message': 'Expired token. Please Log In again.',
+                    'authenticated': False
+                }), 401
+            except jwt.InvalidTokenError:
+                error = jsonify({
+                    'message': 'Invalid token. Please Log In again',
+                    'authenticated': False
+                }), 401
+            return error
+
+        return _verify
+
+    # def admin_token(self, f):
+    #     @wraps(f)
+    #     def decorated(*args, **kwargs):
+    #         token = request.headers.get('Authorization')
+    #         if not token:
+    #             return jsonify({'message': 'Token is missing'}), 404
+    #         try:
+    #             jwt.decode(token, adminkey)
+    #         except:
+    #             return jsonify({'message': 'Token is invalid'}), 404
+    #         return f(*args, **kwargs)
+    #     return decorated
 
     def adminlogin(self, isAdmin):
         """method for logging in the adminstrator"""
@@ -218,17 +289,20 @@ class User_controller():
         if isAdmin == "true":
             return True
 
-    def user_token(self, f):
+    def token(self, f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            token = request.headers.get('Authorization')
+            auth_headers = request.headers.get('Authorization', '').split()
+            token = auth_headers[1]
+            print(token)
             if not token:
                 return jsonify({'message': 'Token is missing'}), 404
             try:
                 jwt.decode(token, userkey)
+                return f(*args, **kwargs)
             except:
                 return jsonify({'message': 'Token is invalid'}), 404
-            return f(*args, **kwargs)
+            
         return decorated
 
     def admin_token(self, f):
