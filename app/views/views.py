@@ -16,7 +16,7 @@ incidence = Incidence()
 
 @app.route('/')
 # @user_controller.user_ttoken
-@swag_from('../apidocs/index.yml')
+# @swag_from('../apidocs/index.yml')
 def index():
     """index url"""
     
