@@ -4,6 +4,7 @@ from app.controllers.incident_controllers import Incidence
 from app.validators import Validators
 import jwt
 import datetime
+from flasgger import Swagger, swag_from
 # from app.controllers.token import *
 
 
@@ -14,7 +15,8 @@ incidence = Incidence()
 
 
 @app.route('/')
-@user_controller.user_ttoken
+# @user_controller.user_ttoken
+@swag_from('../apidocs/index.yml')
 def index():
     """index url"""
     
